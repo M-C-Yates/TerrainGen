@@ -664,12 +664,12 @@ MonoBehaviour:
     height: 0.45
     color:
       serializedVersion: 2
-      rgba: 9633791
+      rgba: 4286435539
   - biome: Grass
     height: 0.55
     color:
       serializedVersion: 2
-      rgba: 7326527
+      rgba: 6212415
   - biome: Forest
     height: 0.7
     color:
