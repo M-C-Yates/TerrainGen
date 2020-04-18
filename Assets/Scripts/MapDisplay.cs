@@ -22,7 +22,6 @@ public class MapDisplay : MonoBehaviour
     }
     texture.SetPixels32(colorMap);
     texture.Apply();
-    print(textureRenderer.sharedMaterial.name);
     textureRenderer.sharedMaterial.mainTexture = texture;
     textureRenderer.transform.localScale = new Vector3(width, 1, height);
   }
