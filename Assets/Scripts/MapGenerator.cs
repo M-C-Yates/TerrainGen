@@ -13,10 +13,11 @@ public class MapGenerator : MonoBehaviour
     mesh
   }
   public DrawMode drawMode;
-  public int mapWidth = 100;
-  public int mapHeight = 100;
-  public float noiseScale = 25f;
 
+  const int mapChunkSize = 241; // TODO try using 121 for more performance
+  [Range(0, 6)] public int levelOfDetail; // 241 - 1 is divisible by 2,4,6,8,10,12 for levelOfDetail
+
+  public float noiseScale = 25f;
   [Range(0, 1)] public float persistance = 0.6f;
   public float lacunarity = 1.8f;
   public int octaves = 5;
@@ -36,26 +37,22 @@ public class MapGenerator : MonoBehaviour
 
   public void GenerateMap()
   {
-    // mapGrid.xSize = mapWidth;
-    // mapGrid.zSize = mapHeight;
-    mapGrid = new MapCell[mapWidth, mapHeight];
+    // mapGrid.xSize = mapChunkSize;
+    // mapGrid.zSize = mapChunkSize;
+    mapGrid = new MapCell[mapChunkSize, mapChunkSize];
 
-    float[,] noiseMap = Noise.GenerateNoiseMap(mapWidth, mapHeight, seed, noiseScale, octaves, persistance, lacunarity, offset);
+    float[,] noiseMap = Noise.GenerateNoiseMap(mapChunkSize, mapChunkSize, seed, noiseScale, octaves, persistance, lacunarity, offset);
 
-    Color32[] colorMap = new Color32[mapWidth * mapHeight];
+    Color32[] colorMap = new Color32[mapChunkSize * mapChunkSize];
 
-    for (int y = 0; y < mapHeight; y++)
+    for (int y = 0; y < mapChunkSize; y++)
     {
-      for (int x = 0; x < mapWidth; x++)
+      for (int x = 0; x < mapChunkSize; x++)
       {
         float currentHeight = noiseMap[x, y];
         mapGrid[x, y].height = currentHeight;
         SetBiomes(x, y, currentHeight);
-        if (mapGrid[x, y].biome.name == "DeepWater")
-        {
-          print(currentHeight);
-        }
-        colorMap[y * mapWidth + x] = mapGrid[x, y].biome.color;
+        colorMap[y * mapChunkSize + x] = mapGrid[x, y].biome.color;
       }
     }
 
@@ -66,11 +63,11 @@ public class MapGenerator : MonoBehaviour
     }
     else if (drawMode == DrawMode.colorMap)
     {
-      display.DrawTexture(TextureGenerator.TextureFromColorMap(colorMap, mapWidth, mapHeight));
+      display.DrawTexture(TextureGenerator.TextureFromColorMap(colorMap, mapChunkSize));
     }
     else if (drawMode == DrawMode.mesh)
     {
-      display.DrawMesh(MeshGenerator.GenerateTerrainMesh(noiseMap, meshHeightMultiplier, meshHeightCurve), TextureGenerator.TextureFromColorMap(colorMap, mapWidth, mapHeight));
+      display.DrawMesh(MeshGenerator.GenerateTerrainMesh(noiseMap, meshHeightMultiplier, meshHeightCurve, levelOfDetail), TextureGenerator.TextureFromColorMap(colorMap, mapChunkSize));
     }
   }
   void SetBiomes(int x, int y, float height)
@@ -118,14 +115,6 @@ public class MapGenerator : MonoBehaviour
   }
   void OnValidate()
   {
-    if (mapWidth < 1)
-    {
-      mapWidth = 1;
-    }
-    if (mapHeight < 1)
-    {
-      mapHeight = 1;
-    }
     if (lacunarity <= 1)
     {
       lacunarity = 1.8f;
