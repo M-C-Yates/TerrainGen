@@ -23,20 +23,24 @@ public class MapGenerator : MonoBehaviour
 
   public Vector2 offset = new Vector2(0f, 0f);
   public int seed = 1;
+  public bool autoUpdate = true;
+  public float meshHeightMultiplier = 2f;
 
-  public MapGrid mapGrid;
+  public AnimationCurve meshHeightCurve;
+
+  // public MapGrid mapGrid;
+  public MapCell[,] mapGrid;
 
   public TerrainType[] regions;
-  public bool autoUpdate = true;
+
 
   public void GenerateMap()
   {
-    mapGrid.xSize = mapWidth;
-    mapGrid.zSize = mapHeight;
-    mapGrid.grid = new MapCell[mapGrid.xSize, mapGrid.zSize];
+    // mapGrid.xSize = mapWidth;
+    // mapGrid.zSize = mapHeight;
+    mapGrid = new MapCell[mapWidth, mapHeight];
 
     float[,] noiseMap = Noise.GenerateNoiseMap(mapWidth, mapHeight, seed, noiseScale, octaves, persistance, lacunarity, offset);
-    print(regions[7].color);
 
     Color32[] colorMap = new Color32[mapWidth * mapHeight];
 
@@ -45,9 +49,13 @@ public class MapGenerator : MonoBehaviour
       for (int x = 0; x < mapWidth; x++)
       {
         float currentHeight = noiseMap[x, y];
-        mapGrid.grid[x, y].height = currentHeight;
-        SetBiomes(x, y);
-        colorMap[y * mapWidth + x] = mapGrid.grid[x, y].biome.color;
+        mapGrid[x, y].height = currentHeight;
+        SetBiomes(x, y, currentHeight);
+        if (mapGrid[x, y].biome.name == "DeepWater")
+        {
+          print(currentHeight);
+        }
+        colorMap[y * mapWidth + x] = mapGrid[x, y].biome.color;
       }
     }
 
@@ -62,50 +70,49 @@ public class MapGenerator : MonoBehaviour
     }
     else if (drawMode == DrawMode.mesh)
     {
-      display.DrawMesh(MeshGenerator.GenerateTerrainMesh(noiseMap), TextureGenerator.TextureFromColorMap(colorMap, mapWidth, mapHeight));
+      display.DrawMesh(MeshGenerator.GenerateTerrainMesh(noiseMap, meshHeightMultiplier, meshHeightCurve), TextureGenerator.TextureFromColorMap(colorMap, mapWidth, mapHeight));
     }
   }
-  void SetBiomes(int x, int y)
+  void SetBiomes(int x, int y, float height)
   {
-    MapCell currentCell = mapGrid.grid[x, y];
-    if (currentCell.height <= 0.3)
+    if (height <= 0.3)
     {
-      mapGrid.grid[x, y].biome = regions[0];
+      mapGrid[x, y].biome = regions[0];
       return;
     }
-    else if (currentCell.height <= 0.43)
+    else if (height <= 0.43)
     {
-      mapGrid.grid[x, y].biome = regions[1];
+      mapGrid[x, y].biome = regions[1];
       return;
     }
-    else if (currentCell.height <= 0.45)
+    else if (height <= 0.45)
     {
-      mapGrid.grid[x, y].biome = regions[2];
+      mapGrid[x, y].biome = regions[2];
       return;
     }
-    else if (currentCell.height <= 0.55)
+    else if (height <= 0.55)
     {
-      mapGrid.grid[x, y].biome = regions[3];
+      mapGrid[x, y].biome = regions[3];
       return;
     }
-    else if (currentCell.height <= 0.7)
+    else if (height <= 0.7)
     {
-      mapGrid.grid[x, y].biome = regions[4];
+      mapGrid[x, y].biome = regions[4];
       return;
     }
-    else if (currentCell.height <= 0.8)
+    else if (height <= 0.8)
     {
-      mapGrid.grid[x, y].biome = regions[5];
+      mapGrid[x, y].biome = regions[5];
       return;
     }
-    else if (currentCell.height <= 0.9)
+    else if (height <= 0.9)
     {
-      mapGrid.grid[x, y].biome = regions[6];
+      mapGrid[x, y].biome = regions[6];
       return;
     }
-    else if (currentCell.height <= 1)
+    else if (height <= 1)
     {
-      mapGrid.grid[x, y].biome = regions[7];
+      mapGrid[x, y].biome = regions[7];
       return;
     }
   }
@@ -127,6 +134,10 @@ public class MapGenerator : MonoBehaviour
     {
       octaves = 0;
     }
+    if (meshHeightMultiplier <= 0f)
+    {
+      meshHeightMultiplier = 0.001f;
+    }
   }
 }
 
@@ -139,16 +150,17 @@ public struct TerrainType // biome info
 }
 
 
+// [System.Serializable]
+// public struct MapGrid
+// {
+//   public int xSize;
+//   public int zSize;
+
+//   public MapCell[,] grid;
+
+// }
+
 [System.Serializable]
-public struct MapGrid
-{
-  public int xSize;
-  public int zSize;
-
-  public MapCell[,] grid;
-
-}
-
 public struct MapCell
 {
   public int xPos;
