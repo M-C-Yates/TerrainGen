@@ -9,7 +9,8 @@ public class MapGenerator : MonoBehaviour
   public enum DrawMode
   {
     noiseMap,
-    colorMap
+    colorMap,
+    mesh
   }
   public DrawMode drawMode;
   public int mapWidth = 100;
@@ -58,7 +59,10 @@ public class MapGenerator : MonoBehaviour
     else if (drawMode == DrawMode.colorMap)
     {
       display.DrawTexture(TextureGenerator.TextureFromColorMap(colorMap, mapWidth, mapHeight));
-
+    }
+    else if (drawMode == DrawMode.mesh)
+    {
+      display.DrawMesh(MeshGenerator.GenerateTerrainMesh(noiseMap), TextureGenerator.TextureFromColorMap(colorMap, mapWidth, mapHeight));
     }
   }
   void SetBiomes(int x, int y)
