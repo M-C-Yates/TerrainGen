@@ -14,7 +14,7 @@ public class MapGenerator : MonoBehaviour
   }
   public DrawMode drawMode;
 
-  const int mapChunkSize = 241; // TODO try using 121 for more performance
+  public const int mapChunkSize = 241; // TODO try using 121 for more performance
   [Range(0, 6)] public int levelOfDetail; // 241 - 1 is divisible by 2,4,6,8,10,12 for levelOfDetail
 
   public float noiseScale = 25f;
