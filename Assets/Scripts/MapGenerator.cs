@@ -16,6 +16,8 @@ public class MapGenerator : MonoBehaviour
   }
   public DrawMode drawMode;
 
+  public Noise.NormalizeMode normalizeMode;
+
   public const int mapChunkSize = 241; // TODO try using 121 for more performance
   [Range(0, 6)] public int editorPreviewLOD; // 241 - 1 is divisible by 2,4,6,8,10,12 for Level of Detail
 
@@ -122,7 +124,7 @@ public class MapGenerator : MonoBehaviour
   {
     mapGrid = new MapCell[mapChunkSize, mapChunkSize];
 
-    float[,] noiseMap = Noise.GenerateNoiseMap(mapChunkSize, mapChunkSize, seed, noiseScale, octaves, persistance, lacunarity, center + offset);
+    float[,] noiseMap = Noise.GenerateNoiseMap(mapChunkSize, mapChunkSize, seed, noiseScale, octaves, persistance, lacunarity, center + offset, normalizeMode);
 
     Color32[] colorMap = new Color32[mapChunkSize * mapChunkSize];
 
@@ -141,44 +143,45 @@ public class MapGenerator : MonoBehaviour
   }
   void SetBiomes(int x, int y, float height)
   {
-    if (height <= 0.3)
+    if (height >= 0.95f)
     {
-      mapGrid[x, y].biome = regions[0];
+      mapGrid[x, y].biome = regions[7];
       return;
     }
-    else if (height <= 0.43)
-    {
-      mapGrid[x, y].biome = regions[1];
-      return;
-    }
-    else if (height <= 0.45)
-    {
-      mapGrid[x, y].biome = regions[2];
-      return;
-    }
-    else if (height <= 0.55)
-    {
-      mapGrid[x, y].biome = regions[3];
-      return;
-    }
-    else if (height <= 0.7)
-    {
-      mapGrid[x, y].biome = regions[4];
-      return;
-    }
-    else if (height <= 0.8)
-    {
-      mapGrid[x, y].biome = regions[5];
-      return;
-    }
-    else if (height <= 0.9)
+
+    else if (height >= 0.86f)
     {
       mapGrid[x, y].biome = regions[6];
       return;
     }
-    else if (height <= 1)
+    else if (height >= 0.7f)
     {
-      mapGrid[x, y].biome = regions[7];
+      mapGrid[x, y].biome = regions[5];
+      return;
+    }
+    else if (height >= 0.6f)
+    {
+      mapGrid[x, y].biome = regions[4];
+      return;
+    }
+    else if (height >= 0.45f)
+    {
+      mapGrid[x, y].biome = regions[3];
+      return;
+    }
+    else if (height >= 0.43f)
+    {
+      mapGrid[x, y].biome = regions[2];
+      return;
+    }
+    else if (height >= 0.3f)
+    {
+      mapGrid[x, y].biome = regions[1];
+      return;
+    }
+    else if (height >= 0)
+    {
+      mapGrid[x, y].biome = regions[0];
       return;
     }
   }
