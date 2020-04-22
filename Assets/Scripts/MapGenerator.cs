@@ -21,7 +21,7 @@ public class MapGenerator : MonoBehaviour
 
   public Noise.NormalizeMode normalizeMode;
 
-  public const int mapChunkSize = 239; // TODO use 119 if more performance is needed
+  public const int mapChunkSize = 241; // TODO use 121 if more performance is needed
   [Range(0, 6)] public int editorPreviewLOD; // 241 - 1 is divisible by 2,4,6,8,10,12 for Level of Detail
 
   public float noiseScale = 25f;
@@ -148,7 +148,7 @@ public class MapGenerator : MonoBehaviour
       falloffMap = FalloffGenerator.GenerateCircularFalloffMap(mapChunkSize);
     }
 
-    float[,] noiseMap = Noise.GenerateNoiseMap(mapChunkSize + 2, mapChunkSize + 2, seed, noiseScale, octaves, persistance, lacunarity, center + offset, normalizeMode);
+    float[,] noiseMap = Noise.GenerateNoiseMap(mapChunkSize, mapChunkSize, seed, noiseScale, octaves, persistance, lacunarity, center + offset, normalizeMode);
 
     Color32[] colorMap = new Color32[mapChunkSize * mapChunkSize];
 
