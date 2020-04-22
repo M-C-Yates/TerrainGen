@@ -8,17 +8,20 @@ using UnityEngine;
 // improve world generation to look better
 public class MapGenerator : MonoBehaviour
 {
+  public enum FalloffShape { square, circle };
   public enum DrawMode
   {
     noiseMap,
     colorMap,
-    mesh
-  }
+    mesh,
+    falloffMap
+  };
   public DrawMode drawMode;
+  public FalloffShape falloffShape;
 
   public Noise.NormalizeMode normalizeMode;
 
-  public const int mapChunkSize = 241; // TODO try using 121 for more performance
+  public const int mapChunkSize = 241; // TODO use 121 if more performance is needed
   [Range(0, 6)] public int editorPreviewLOD; // 241 - 1 is divisible by 2,4,6,8,10,12 for Level of Detail
 
   public float noiseScale = 25f;
@@ -38,8 +41,17 @@ public class MapGenerator : MonoBehaviour
 
   public TerrainType[] regions;
   public MapData mapData;
+
+  float[,] falloffMap;
+  public bool useFalloff = false;
+
   Queue<MapThreadInfo<MapData>> mapDataThreadInfoQueue = new Queue<MapThreadInfo<MapData>>();
   Queue<MapThreadInfo<MeshData>> meshDataThreadInfoQueue = new Queue<MapThreadInfo<MeshData>>();
+
+  void Awake()
+  {
+    falloffMap = FalloffGenerator.GenerateSquareFalloffMap(mapChunkSize);
+  }
 
   public void DrawMapInEditor()
   {
@@ -56,6 +68,10 @@ public class MapGenerator : MonoBehaviour
     else if (drawMode == DrawMode.mesh)
     {
       display.DrawMesh(MeshGenerator.GenerateTerrainMesh(mapData.heightMap, meshHeightMultiplier, meshHeightCurve, editorPreviewLOD), TextureGenerator.TextureFromColorMap(mapData.colorMap, mapChunkSize));
+    }
+    else if (drawMode == DrawMode.falloffMap)
+    {
+      display.DrawTexture(TextureGenerator.TextureFromHeightMap(FalloffGenerator.GenerateCircularFalloffMap(mapChunkSize)));
     }
   }
 
@@ -123,6 +139,14 @@ public class MapGenerator : MonoBehaviour
   MapData GenerateMapData(Vector2 center)
   {
     mapGrid = new MapCell[mapChunkSize, mapChunkSize];
+    if (falloffShape == FalloffShape.square)
+    {
+      falloffMap = FalloffGenerator.GenerateSquareFalloffMap(mapChunkSize);
+    }
+    else if (falloffShape == FalloffShape.circle)
+    {
+      falloffMap = FalloffGenerator.GenerateCircularFalloffMap(mapChunkSize);
+    }
 
     float[,] noiseMap = Noise.GenerateNoiseMap(mapChunkSize, mapChunkSize, seed, noiseScale, octaves, persistance, lacunarity, center + offset, normalizeMode);
 
@@ -132,6 +156,10 @@ public class MapGenerator : MonoBehaviour
     {
       for (int x = 0; x < mapChunkSize; x++)
       {
+        if (useFalloff)
+        {
+          noiseMap[x, y] = Mathf.Clamp01(noiseMap[x, y] - falloffMap[x, y]);
+        }
         float currentHeight = noiseMap[x, y];
         mapGrid[x, y].height = currentHeight;
         SetBiomes(x, y, currentHeight);
@@ -143,9 +171,11 @@ public class MapGenerator : MonoBehaviour
   }
   void SetBiomes(int x, int y, float height)
   {
-    if (height >= 0.95f)
+    if (height >= 0.93f)
     {
       mapGrid[x, y].biome = regions[7];
+
+      // mapGrid[x, y].biome.color = new Color32(255,255,255,255);      
       return;
     }
 
